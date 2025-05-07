@@ -4,10 +4,26 @@ import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.Properties;
 
+/**
+ * Простой внедритель зависимостей (Dependency Injector).
+ * <p>
+ * Загружает конфигурацию из файла {@code application.properties},
+ * анализирует объекты через рефлексию и внедряет зависимости,
+ * помеченные аннотацией {@link AutoInjectable}.
+ *
+ * @author Developer
+ * @version 1.0
+ * @since 2025-04-05
+ */
 public class Injector {
 
     private final Properties properties = new Properties();
 
+    /**
+     * Конструктор по умолчанию.
+     * <p>
+     * Загружает свойства из файла {@code application.properties}.
+     */
     public Injector() {
         try (InputStream input = getClass().getClassLoader().getResourceAsStream("application.properties")) {
             if (input == null) {
@@ -19,6 +35,14 @@ public class Injector {
         }
     }
 
+    /**
+     * Внедряет зависимости в указанный объект.
+     *
+     * @param target Объект, в который нужно внедрить зависимости.
+     * @param <T>    Тип целевого объекта.
+     * @return Целевой объект с внедрёнными зависимостями.
+     * @throws RuntimeException Если внедрение невозможно.
+     */
     public <T> T inject(T target) {
         Class<?> clazz = target.getClass();
 
@@ -34,7 +58,7 @@ public class Injector {
                 try {
                     Class<?> implClass = Class.forName(implClassName);
                     Object instance = implClass.getDeclaredConstructor().newInstance();
-                    field.setAccessible(true); // если поле private
+                    field.setAccessible(true);
                     field.set(target, instance);
                 } catch (Exception e) {
                     throw new RuntimeException("Ошибка при внедрении " + interfaceType.getName(), e);
